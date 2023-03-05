@@ -13,9 +13,9 @@ server:
 
 spring:
  datasource:
-   url: jdbc:postgresql://localhost:5432/visionrent_db
+   url: jdbc:postgresql://localhost:5432/visionrent_db_night
    username: postgres
-   password: changeme
+   password: Ankara06
    driver-class-name: org.postgresql.Driver
    
  #main:
