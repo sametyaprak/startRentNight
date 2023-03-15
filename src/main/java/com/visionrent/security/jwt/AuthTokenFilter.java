@@ -1,11 +1,14 @@
 package com.visionrent.security.jwt;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,7 +20,7 @@ import java.io.IOException;
 
 public class AuthTokenFilter extends OncePerRequestFilter {
 
-    private static final
+    private static final Logger AuthTokenFilterLogger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -25,7 +28,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtils jwtUtils;
 
-
+    /**
+     * This doFilter implementation stores a request attribute for "already filtered",
+     * proceeding without filtering again if the attribute is already there.
+     * by all requests, we are extracting token -> userDetails -> security context.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String jwtToken = parseJWT(request);
@@ -44,8 +51,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
         } catch (Exception e){
-
+            AuthTokenFilterLogger.error("USER not Found {}: " , e.getMessage());
         }
+
+        filterChain.doFilter(request,response);
     }
 
 
@@ -54,5 +63,15 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         if(StringUtils.hasText(header) && header.startsWith("Bearer ")){
             return header.substring(7);
         } return null;
+    }
+
+    /**
+     * the endpoints that we do not filter through the security should be entered here.
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        AntPathMatcher antPathMatcher = new AntPathMatcher();
+        return antPathMatcher.match("/register",request.getServletPath())
+        || antPathMatcher.match("/login",request.getServletPath());
     }
 }
