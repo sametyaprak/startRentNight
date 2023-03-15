@@ -11,7 +11,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
+/**
+ * 1. CLASS TO IMPLEMENT
+ * Security helper class-2
+ * this class is uses our user which has been fetched from DB by UserDetailsServiceImpl class loadUserByUsername method.
+ * the user will be fulfilled with user details.
+ * User details are overwritten methods below.
+ * At the end we have UserDetailsImpl object that has credentials and user details.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
