@@ -16,17 +16,20 @@ public class JwtUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtUtils.class);
 
-    @Value("${visionrent.app.jwtSecret}")
+    @Value("${visionrent.app.jwtExpirationMs}")
     public long jwtExpirationMs;
 
-    @Value("${visionrent.app.jwtExpirationMs}")
+    @Value("${visionrent.app.jwtSecret}")
     public String jwtSecret;
 
 
     public String generateJwtToken(UserDetails userDetails){
         return Jwts.builder().setSubject(userDetails.getUsername())
+                            //when issued?
                             .setIssuedAt(new Date())
+                            //when it will be expired?
                             .setExpiration(new Date(new Date().getTime()+jwtExpirationMs))
+                            //signature
                             .signWith(SignatureAlgorithm.ES512,jwtSecret)
                             .compact();
     }

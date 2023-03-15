@@ -2,6 +2,9 @@ package com.visionrent.security.jwt;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -14,9 +17,13 @@ import java.io.IOException;
 
 public class AuthTokenFilter extends OncePerRequestFilter {
 
+    private static final
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
 
     @Override
@@ -24,7 +31,20 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         String jwtToken = parseJWT(request);
         try {
             //validate the token
-            if(jwtToken!=null )
+            if(jwtToken!=null && jwtUtils.validateJwtToken(jwtToken)){
+                //get email from this token
+                String email = jwtUtils.getEmailFromToken(jwtToken);
+                // KEY PART THAT CALLS USER DETAILS FROM SERVICE PACKAGE
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+
+                //authenticated token (user details) will be sent to security context.
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
+        } catch (Exception e){
+
         }
     }
 
